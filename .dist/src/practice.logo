@@ -1,0 +1,46 @@
+to setup
+  clear-all
+  create-turtles floor (world-width / 3) [
+    set xcor 1 + who * 3  ;; space out the turtles in order by who number
+    set color color - 2   ;; darker
+    set size 1 + random-float 3
+    set heading 0
+    set label who
+  ]
+  reset-ticks
+end
+
+;;; three different version of GO
+
+to go-random
+  ask turtles [
+    fd 1
+    display
+  ]
+  tick
+end
+
+to go-by-who-number
+  foreach sort turtles [ t ->
+    ask t [
+      fd 1
+      display
+    ]
+  ]
+  tick
+end
+
+to go-by-size
+  foreach sort-by [ [a b] -> [ size ] of a > [ size ] of b ] turtles [ t ->
+    ask t [
+      fd 1
+      display
+    ]
+  ]
+  tick
+end
+
+
+; Public Domain:
+; To the extent possible under law, Uri Wilensky has waived all
+; copyright and related or neighboring rights to this model.
