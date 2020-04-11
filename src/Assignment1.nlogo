@@ -1,20 +1,34 @@
 breed [ prays a-pray ]
 breed [ predictors a-predictor ]
+turtles-own [
+  flockmates         ;; agentset of nearby turtles
+  nearest-neighbor   ;; closest one of our flockmates
+]
 
 globals [
   location-x location-y
+  version
+  minimum-separation
+  max-align-turn
+  max-cohere-turn
+  max-separate-turn
 ]
 
 to Reset
   clear-all
   ;;set-default-shape turtles "ant"
+  set version 5
+  set minimum-separation 1.25
+  set max-align-turn 19.00
+  set max-cohere-turn 0.75 ;; must be a value for change directions
+  set max-separate-turn 3.5
 
   create-prays PrayGpoupNumber
     [
 
-    set shape  "sheep"
+    set shape  "default"
     set color white
-    set size 1.5  ; easier to see
+    set size 1  ; easier to see
     set label-color blue - 2
     ;;set energy random (2 * sheep-gain-from-food)
     setxy random-xcor random-ycor]
@@ -23,7 +37,7 @@ to Reset
   create-predictors EagleGroupNumber
     [
 
-    set shape  "wolf"
+    set shape  "default"
     set color yellow
     set size 2  ; easier to see
     set label-color blue - 2
@@ -39,7 +53,98 @@ to Start
   ; stop the model if there are no wolves and the number of sheep gets very large
   if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
 
+  ask prays [flock]
+  repeat 5 [ ask prays [ fd 0.2 ] display ]
+  ask predictors [move]
 
+  tick
+
+
+end
+
+to move  ; turtle procedure
+  rt random 50
+  lt random 50
+  fd 1
+end
+
+
+to flock  ;; turtle procedure
+  find-flockmates
+  if any? flockmates
+    [ find-nearest-neighbor
+      ifelse distance nearest-neighbor < minimum-separation
+        [ separate ]
+        [ align
+          cohere ] ]
+end
+
+to find-flockmates  ;; turtle procedure
+  set flockmates other turtles in-radius version
+end
+
+to find-nearest-neighbor ;; turtle procedure
+  set nearest-neighbor min-one-of flockmates [distance myself]
+end
+
+;;; SEPARATE
+
+to separate  ;; turtle procedure
+  turn-away ([heading] of nearest-neighbor) max-separate-turn
+end
+
+;;; ALIGN
+
+to align  ;; turtle procedure
+  turn-towards average-flockmate-heading max-align-turn
+end
+
+to-report average-flockmate-heading  ;; turtle procedure
+  ;; We can't just average the heading variables here.
+  ;; For example, the average of 1 and 359 should be 0,
+  ;; not 180.  So we have to use trigonometry.
+  let x-component sum [dx] of flockmates
+  let y-component sum [dy] of flockmates
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
+
+;;; COHERE
+
+to cohere  ;; turtle procedure
+  turn-towards average-heading-towards-flockmates max-cohere-turn
+end
+
+to-report average-heading-towards-flockmates  ;; turtle procedure
+  ;; "towards myself" gives us the heading from the other turtle
+  ;; to me, but we want the heading from me to the other turtle,
+  ;; so we add 180
+  let x-component mean [sin (towards myself + 180)] of flockmates
+  let y-component mean [cos (towards myself + 180)] of flockmates
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
+
+;;; HELPER PROCEDURES
+
+to turn-towards [new-heading max-turn]  ;; turtle procedure
+  turn-at-most (subtract-headings new-heading heading) max-turn
+end
+
+to turn-away [new-heading max-turn]  ;; turtle procedure
+  turn-at-most (subtract-headings heading new-heading) max-turn
+end
+
+;; turn right by "turn" degrees (or left if "turn" is negative),
+;; but never turn more than "max-turn" degrees
+to turn-at-most [turn max-turn]  ;; turtle procedure
+  ifelse abs turn > max-turn
+    [ ifelse turn > 0
+        [ rt max-turn ]
+        [ lt max-turn ] ]
+    [ rt turn ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -93,7 +198,7 @@ BUTTON
 46
 Start Simluation
 Start
-NIL
+T
 1
 T
 OBSERVER
@@ -112,7 +217,7 @@ PrayGpoupNumber
 PrayGpoupNumber
 0
 1000
-879.0
+178.0
 1
 1
 NIL
@@ -127,7 +232,7 @@ EagleGroupNumber
 EagleGroupNumber
 0
 100
-9.0
+3.0
 1
 1
 NIL
