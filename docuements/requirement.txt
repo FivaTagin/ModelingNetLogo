@@ -1,0 +1,139 @@
+https://myuni.adelaide.edu.au/courses/54440/assignments/150341
+
+
+Note This is a group assignment - you are to complete this assignment in groups of 2-3 students.
+
+Group formation: You are to form your own groups and inform the course coordinator by the 14th of March, 2020, 5pm of group formation via email. Use the subject MACS Group - Assignment 1.
+
+You can use the course forum to search for group mates. 
+
+All group members are expected to contribute equally and marks will be shared.  
+Only one group member is required to submit the assignment but every group member (name and student id) must be listed at the top of the assignment report. If there are problems 
+with your group please let the coordinator know well before the deadline for the assignment.
+
+ 
+
+Summary
+In this assignment, you have to complete the three parts listed below where you will use agent based models to describe complex systems. 
+For each part you have to write, test and describe code for the NetLogo system. 
+In each part, you will need to produce code and a section of a report. For each part, marks will be given for:
+
+ 
+
+(30% of marks for each part) The code you contribute to your implementation – 
+your submission will be assessed in terms of the clarity and simplicity of the code that you add; 
+how clearly the code you have contributed is delineated; 
+plus code modularity, formatting and commenting.
+
+(20% of marks for each part) The linkage in the code between your model and the real system 
+– note that this doesn’t mean you have to make your model very detailed 
+– it just has to have the essential elements of the system embedded. 
+Make sure your code comments make the linkage between the code and the system clear.
+
+(20% of marks for each part) In the report: you will be assessed based on the clarity of the description of the system, 
+how it works and how its construction reflects aspects of the real system under investigation.
+
+(10% of marks for each part) In the report: a short description of how to use the system.
+
+(20% of marks for each part) In the report: evidence of testing and assessment of the systems validity 
+- both in terms of how it is defined and how it behaves. 
+This is the part where you address the questions in each section below.
+ 
+
+You are to hand in:
+
+a zip file to the assignment 1 link in MyUni consisting of your NetLogo code (which will be manually examined and run to assess parts 1 and 2 above.
+a report that describes the system you are modelling, and how your model works (part 3 above); 
+how to use the system (part 4 above); and assesses its validity (part 5 above).
+THE ASSIGNMENT
+
+Preparation
+Download Netlogo from its website: https://ccl.northwestern.edu/netlogo/download.shtml (Links to an external site.) 
+and test on the biology->flocking model from the model’s library. 
+Looks at the code and the constructs that are used and how interactions are defined in the model. After the code experiment with the different simulation settings. 
+Next look at the biology-> wolf sheep predation problem – note the use of breeds and patches in this simulation.
+
+ 
+
+Have a look at the simulations of most interest to you and answer the questions below.
+
+Part 1. Adding predators to the flocking behaviour simulation (10 marks)
+The Flocking simulation model in Netlogo follows a few simple rules to guide the birds to form flocks. 
+However, even more interesting emergent behaviour happens when predators are present to influence flock behaviour.  See: 
+https://youtu.be/1ZAavDH37R4 (Links to an external site.)
+and read http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0179277 (Links to an external site.).
+
+ 
+
+There is a preliminary indication that starlings are tending to group into larger flocks when predators are present in order to be safer as individuals. 
+That is, when a predator is seen, the birds fly away from the predator (usually a hawk or falcon) and toward the centre of the largest nearby flock. 
+In your simulation, by defining a predator breed and defining rules for predator behaviour and rules to respond to predators, 
+you will attempt to see if it is possible to create some of the emergent behaviours seen in starling murmurations. 
+
+Note:  there are published variants of such simulations 
+– you will find that these are quite complex 
+– in this part of the assignment it is better to build a simple system that exhibits elements of the observed behaviour than a complicated system that produces an exact emulation. 
+As always, make sure you make clear any code or contribution you have sourced from elsewhere with your course coordinator.
+
+ 
+
+Write a section in your report on your work according to the criteria listed at the start of this assignment.
+
+ 
+
+Part 2: The tragedy of the commons (10 marks)
+ 
+
+The tragedy of the commons is an old concept in economics deriving from the idea that shared resources will be overexploited by people acting in a rational way. 
+The concept of the tragedy of the commons one of the first formal explorations of the economic concept of externalities.  
+In economics, externalities occur when the cost or benefit of an activity does not accrue completely to the actors involved in that activity.
+
+ 
+
+In this simulation, you can start with a simplified version of the sheep-wolf-grass model from the sheep-wolf predator model from the model library in NetLogo.  
+In your model, you have two farmers (farmer A and farmer B) entities who own and graze sheep on the grass in the simulation. 
+Conceptually the field in your model is divided into three sections as below:
+
+ ================ ================ ================ ================ ================ ===
+
+ PART 1
+
+================ ================ ================ ================ ================ ===
+
+PART 3
+
+================ ================ ================ ================ ================ ===
+
+PART 2
+
+================ ================ ================ ================ ================ ===
+
+Farmer A can graze her sheep on part 1 and part 3. 
+Farmer B can graze his sheep on part 2 and part 3. 
+As you can see, part 3 is shared – it is the commons.  
+The aim of both farmers is to maximise the number of sheep they keep alive 
+– subject to the availability of grass. If sheep don’t have enough grass they die; 
+if they have too much then they breed. The rules for this dying and breeding are already a part of the sheep-grass-wolf predation model (you have no wolves!).
+
+ 
+
+In this implementation, use slider variables to set maximum number of sheep that each farmer wants to have. Farmers don’t want their sheep to starve but they also want maximum sheep. By manually adjusting the sliders try to find the maximum number of sheep that farmers can have before the population of sheep starts to oscillate up and down (indicating a boom and bust of starvation and breeding).  Report on what happens to the grass in each section 1, 2 and 3.  Also report on what happens if you stop farmers from using section 3. How many sheep can they run now? What happens if you let one farmer use section 3 but not the other? Address these questions in the section of the report dedicated to this part of the exercise.
+
+ 
+
+Note, as before, there are published models of the tragedy of the commons out there but these are much more complex than the scenario you will need to set up here.
+
+ 
+
+Part 3: Automatic tragedy of the commons (5 marks)
+ 
+
+In this section, you must write code that makes the farmers automate the stocking rates of their farms. The farmers will aim to maximise their average number of sheep over time while ensuring that they have a stable population (no wild swings up or down in population – this would be bad!).  This means that you will need to track both population and how much the population varies by and set a population that maximises the number of sheep for each farmer (acting independently) while damping the population swings.
+
+ 
+
+Report on the following in the testing description in a third section of your report.  What are the stocking rates you get? Are these the same as the manually derived values for part 2? What happens if you get one farmer who is more prepared to put up with wild swings in population? Does she get to run more or less sheep over time?  What is the effect of changing the growth rate of grass? Or changing the breeding rate of sheep?
+
+ 
+
+End of questions (make sure you hand in both your code and your report in your zip file!)
