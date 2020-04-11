@@ -3,6 +3,7 @@ breed [ predictors a-predictor ]
 turtles-own [
   flockmates         ;; agentset of nearby turtles
   nearest-neighbor   ;; closest one of our flockmates
+  nearest-predictor  ;; closest one of predictor
 ]
 
 globals [
@@ -12,23 +13,25 @@ globals [
   max-align-turn
   max-cohere-turn
   max-separate-turn
+
+  target
 ]
 
 to Reset
   clear-all
   ;;set-default-shape turtles "ant"
   set version 5
-  set minimum-separation 1.25
+  set minimum-separation 0.2
   set max-align-turn 19.00
   set max-cohere-turn 0.75 ;; must be a value for change directions
   set max-separate-turn 3.5
-
+  set target 0
   create-prays PrayGpoupNumber
     [
 
     set shape  "default"
     set color white
-    set size 1  ; easier to see
+    set size 0.3  ; easier to see
     set label-color blue - 2
     ;;set energy random (2 * sheep-gain-from-food)
     setxy random-xcor random-ycor]
@@ -53,18 +56,22 @@ to Start
   ; stop the model if there are no wolves and the number of sheep gets very large
   if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
 
+  every timeofgiveup [set target random PrayGpoupNumber]
   ask prays [flock]
-  ask predictors [move]
+  repeat 5 [ ask prays [ fd 0.2 ] display ]
+  ask predictors [catch_pray]
 
   tick
 
 
 end
 
-to move  ; turtle procedure
-  rt random 50
-  lt random 50
-  fd 1
+to catch_pray  ; turtle procedure
+  face turtle (who - target)
+
+  fd 0.8
+
+
 end
 
 
@@ -76,10 +83,12 @@ to flock  ;; turtle procedure
         [ separate ]
         [ align
           cohere ] ]
+
+
 end
 
 to find-flockmates  ;; turtle procedure
-  set flockmates other turtles in-radius
+  set flockmates other prays in-radius version
 end
 
 to find-nearest-neighbor ;; turtle procedure
@@ -216,7 +225,7 @@ PrayGpoupNumber
 PrayGpoupNumber
 0
 1000
-178.0
+541.0
 1
 1
 NIL
@@ -231,7 +240,7 @@ EagleGroupNumber
 EagleGroupNumber
 0
 100
-3.0
+1.0
 1
 1
 NIL
@@ -246,14 +255,44 @@ Values
 Time
 GroupWight
 0.0
-100000.0
+100.0
 0.0
 100.0
 true
-false
+true
 "" ""
 PENS
-"GroupWeight" 1.0 0 -2674135 true "" "plot count turtles"
+"pen-1" 1.0 0 -7500403 true "" "plot count prays"
+
+SLIDER
+145
+348
+317
+381
+Dist_Pred
+Dist_Pred
+0
+10
+4.75
+0.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+161
+429
+333
+462
+timeofgiveup
+timeofgiveup
+0
+20
+20.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
