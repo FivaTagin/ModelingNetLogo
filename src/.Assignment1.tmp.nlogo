@@ -100,10 +100,10 @@ to flock  ;; turtle procedure
         [ align
           cohere ]
 
-      ;; add avoid functionality current is usless
-      ;find-nearest-predictor
-      ;if distance nearest-predictor < Minimum-Range-Pred
-      ;  [avoid-pred]
+      ;; add avoid functionality
+      find-nearest-predictor
+      if distance nearest-predictor < Minimum-Range-Pred
+        [avoid-pred]
 
   ]
 
@@ -116,19 +116,19 @@ end
 
 
 ;;
-;; new functions/ current is usless
+;; new functions
 ;;
 
-;to find-predictor  ;; turtle procedure
-;  set treats other prays in-radius version
-;end
+to find-predictor  ;; turtle procedure
+  set treats other prays in-radius version
+end
 
-;to find-nearest-predictor ;; turtle procedure
-;  set nearest-predictor min-one-of treats [distance myself]
-;end
+to find-nearest-predictor ;; turtle procedure
+  set nearest-predictor min-one-of treats [distance myself]
+end
 
 ;;
-;;current is usless
+;;
 ;;
 
 to find-flockmates  ;; turtle procedure
