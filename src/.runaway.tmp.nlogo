@@ -1,165 +1,96 @@
-breed [ prays a-pray ]
-breed [ predictors a-predictor ]
-turtles-own [
-  flockmates         ;; agentset of nearby turtles
-  nearest-neighbor   ;; closest one of our flockmates
-  nearest-predictor  ;; closest one of predictor
-]
+globals[flag]
+breed[cats cat]
+breed[dogs dog]
+to update_heading;red to find black
+  let x1 1
+  let y1 1
+  let x2 1
+  let y2 1
+  let hea 0
+  ask turtles with [color = red][
+    set x1 pxcor
+    set y1 pycor
+  ]
+  ask turtles with [color = white][
+    set x2 pxcor - x1
+    set y2 pycor - y1
+  ]
+  if x2 = 0 and y2 = 0
+  [
+    set flag 1
+    stop
+  ]
+  let turn_corn 0
+  show x2
+  show y2
+  set turn_corn acos( y2 / sqrt( x2 * x2 + y2 * y2 ) )
+  ifelse x2 >= 0[
+     ask turtles with [color = red][set heading turn_corn]
+  ][
+     ask turtles with [color = red][set heading 360 - turn_corn]
+  ]
+end
 
-globals [
-  location-x location-y
-  version
-  minimum-separation
-  max-align-turn
-  max-cohere-turn
-  max-separate-turn
-
-  target
-]
-
-to Reset
+to setup
   clear-all
-  ;;set-default-shape turtles "ant"
-  set version 5
-  set minimum-separation 0.2
-  set max-align-turn 19.00
-  set max-cohere-turn 0.75 ;; must be a value for change directions
-  set max-separate-turn 3.5
-  set target 0
-  create-prays PrayGpoupNumber
-    [
-
-    set shape  "default"
-    set color white
-    set size 0.3  ; easier to see
-    set label-color blue - 2
-    ;;set energy random (2 * sheep-gain-from-food)
-    setxy random-xcor random-ycor]
-
-
-  create-predictors EagleGroupNumber
-    [
-
-    set shape  "default"
-    set color yellow
-    set size 2  ; easier to see
-    set label-color blue - 2
-    ;;set energy random (2 * sheep-gain-from-food)
-    setxy random-xcor random-ycor]
-
-
   reset-ticks
+  set flag 0
+  set-default-shape turtles "wolf"
+  create-dogs 1[
+    set color red
+    setxy random-xcor random-ycor
+  ]
+  set-default-shape turtles "sheep"
+  create-cats [
+    set color white
+    setxy random-xcor random-ycor
+  ]
+  ask turtles with [color = red][
+    create-links-with other turtles
+    if links-two = false [ask links [hide-link] ]
+  ]
 end
 
-to Start
+to go
+  update_heading
+  ask turtles[
 
-  ; stop the model if there are no wolves and the number of sheep gets very large
-  if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
+    if color = white[
+      right random 90
+      left random 90
+      fd -0.3
+    ]
+    if color = white [
+      let temp 0
+      ask other turtles [if color = red [set temp distance myself]]
 
-  every timeofgiveup [set target random PrayGpoupNumber]
-  ask prays [flock]
-  repeat 5 [ ask prays [ fd 0.2 ] display ]
-  ask predictors [catch_pray]
+      ifelse temp < RunDistance [fd 10] [fd 1]
 
+    ]
+
+    if color = red [
+      fd 0.5
+    ]
+
+  ]
+  if flag = 1[stop]
+  let d 0
+  ask turtles[
+    if color = white[ask other turtles[set d distance myself]]
+
+
+  ]
+  set-current-plot "Distance"
+  set-current-plot-pen "catch"
+  plot d
   tick
-
-
-end
-
-to catch_pray  ; turtle procedure
-  face turtle (who - target)
-
-  fd 0.8
-
-
-end
-
-
-to flock  ;; turtle procedure
-  find-flockmates
-  if any? flockmates
-    [ find-nearest-neighbor
-      ifelse distance nearest-neighbor < minimum-separation
-        [ separate ]
-        [ align
-          cohere ] ]
-
-
-end
-
-to find-flockmates  ;; turtle procedure
-  set flockmates other prays in-radius version
-end
-
-to find-nearest-neighbor ;; turtle procedure
-  set nearest-neighbor min-one-of flockmates [distance myself]
-end
-
-;;; SEPARATE
-
-to separate  ;; turtle procedure
-  turn-away ([heading] of nearest-neighbor) max-separate-turn
-end
-
-;;; ALIGN
-
-to align  ;; turtle procedure
-  turn-towards average-flockmate-heading max-align-turn
-end
-
-to-report average-flockmate-heading  ;; turtle procedure
-  ;; We can't just average the heading variables here.
-  ;; For example, the average of 1 and 359 should be 0,
-  ;; not 180.  So we have to use trigonometry.
-  let x-component sum [dx] of flockmates
-  let y-component sum [dy] of flockmates
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
-end
-
-;;; COHERE
-
-to cohere  ;; turtle procedure
-  turn-towards average-heading-towards-flockmates max-cohere-turn
-end
-
-to-report average-heading-towards-flockmates  ;; turtle procedure
-  ;; "towards myself" gives us the heading from the other turtle
-  ;; to me, but we want the heading from me to the other turtle,
-  ;; so we add 180
-  let x-component mean [sin (towards myself + 180)] of flockmates
-  let y-component mean [cos (towards myself + 180)] of flockmates
-  ifelse x-component = 0 and y-component = 0
-    [ report heading ]
-    [ report atan x-component y-component ]
-end
-
-;;; HELPER PROCEDURES
-
-to turn-towards [new-heading max-turn]  ;; turtle procedure
-  turn-at-most (subtract-headings new-heading heading) max-turn
-end
-
-to turn-away [new-heading max-turn]  ;; turtle procedure
-  turn-at-most (subtract-headings heading new-heading) max-turn
-end
-
-;; turn right by "turn" degrees (or left if "turn" is negative),
-;; but never turn more than "max-turn" degrees
-to turn-at-most [turn max-turn]  ;; turtle procedure
-  ifelse abs turn > max-turn
-    [ ifelse turn > 0
-        [ rt max-turn ]
-        [ lt max-turn ] ]
-    [ rt turn ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-573
+252
 10
-1894
-812
+689
+448
 -1
 -1
 13.0
@@ -172,10 +103,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--50
-50
--30
-30
+-16
+16
+-16
+16
 0
 0
 1
@@ -183,12 +114,12 @@ ticks
 30.0
 
 BUTTON
-146
-13
-243
-46
-Reset Value
-Reset
+85
+50
+148
+83
+NIL
+setup
 NIL
 1
 T
@@ -200,12 +131,12 @@ NIL
 1
 
 BUTTON
-249
-13
-367
-46
-Start Simluation
-Start
+123
+153
+186
+186
+NIL
+go
 T
 1
 T
@@ -216,80 +147,46 @@ NIL
 NIL
 1
 
-SLIDER
-145
-65
-317
-98
-PrayGpoupNumber
-PrayGpoupNumber
-0
-1000
-541.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-146
-103
-318
-136
-EagleGroupNumber
-EagleGroupNumber
-0
-100
-1.0
-1
-1
-NIL
-HORIZONTAL
-
 PLOT
-140
-149
-340
-299
-Values
-Time
-GroupWight
+27
+288
+227
+438
+Distance
+NIL
+NIL
 0.0
-100.0
+10.0
 0.0
-100.0
+10.0
 true
-true
+false
 "" ""
 PENS
-"pen-1" 1.0 0 -7500403 true "" "plot count prays"
+"catch" 1.0 0 -16777216 true "" "plot count turtles"
+
+SWITCH
+88
+216
+192
+249
+links-two
+links-two
+0
+1
+-1000
 
 SLIDER
-145
-348
-317
-381
-Dist_Pred
-Dist_Pred
+59
+129
+231
+162
+RunDistance
+RunDistance
 0
-10
-4.75
-0.25
-1
-NIL
-HORIZONTAL
-
-SLIDER
-161
-429
-333
-462
-timeofgiveup
-timeofgiveup
-0
-20
-20.0
-1
+50
+1.5
+0.5
 1
 NIL
 HORIZONTAL
