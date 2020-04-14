@@ -382,7 +382,7 @@ timeofgiveup
 timeofgiveup
 0
 20
-6.0
+4.0
 1
 1
 NIL
@@ -412,7 +412,7 @@ escape-range
 escape-range
 0
 3000000
-911392.0
+1955696.0
 1
 1
 NIL
@@ -442,7 +442,7 @@ SpeedofPreditor
 SpeedofPreditor
 0
 5
-1.0
+2.5
 0.5
 1
 NIL
