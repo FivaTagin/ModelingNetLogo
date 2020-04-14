@@ -2,14 +2,20 @@ breed [ prays a-pray ]
 breed [ predictors a-predictor ]
 turtles-own [
   flockmates         ;; agentset of nearby turtles
+<<<<<<< Updated upstream
   treats             ;; agentset of nearby predictors
+=======
+  threats             ;; agentset of nearby predictors
+>>>>>>> Stashed changes
   nearest-neighbor   ;; closest one of our flockmates
   nearest-predictor  ;; closest one of predictor
+  around-birds             ;; agentset of nearby birds
+  nearest-bird  ;; closest one of birds
 ]
 
 globals [
   location-x location-y
-  version
+  vision
   minimum-separation
   max-align-turn
   max-cohere-turn
@@ -23,7 +29,7 @@ globals [
 to Reset
   clear-all
   ;;set-default-shape turtles "ant"
-  set version 5
+  set vision 5
   set minimum-separation 0.5
   set max-align-turn 19.00
   set max-cohere-turn 0.75 ;; must be a value for change directions
@@ -62,6 +68,7 @@ to Start
   if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
 
   every timeofgiveup [set target random PrayGpoupNumber]
+<<<<<<< Updated upstream
   ask turtles [
     flock
     if color = white [
@@ -74,20 +81,94 @@ to Start
   repeat 5 [ ask prays [ fd 0.2 ] display ]
 
   ask predictors [catch_pray]
+=======
+  ask prays [
+             run-away
+             flock]
+
+  repeat 5 [ ask prays [ fd 0.2 ] display ]
+
+  ask predictors [fd 1 ]
+>>>>>>> Stashed changes
 
   tick
+end
 
+to killbird
+  find-birds ;;find all birds around
+  if any? around-birds
+  [
+    find-nearest-bird ;;find the nearest bird
+    ifelse distance nearest-bird < kill-range ;;check if it is in the kill-range
+    [ask nearest-bird [die] ;;kill the nearest one
+    wander] ;;wander with random direction
+    [wander]
+
+  ]
+end
+
+to find-birds
+   set around-birds prays in-radius vision ;;find around birds in vision
 
 end
 
+to  find-nearest-bird
+  set nearest-bird min-one-of around-birds [distance myself] ;;find nearest one
+end
+
+<<<<<<< Updated upstream
 to catch_pray  ; turtle procedure
   ;face turtle (who - target)
 
   fd random 1
+=======
+to wander
+  rt random 360
+  fd 0.5
+  ;; random direction
+end
 
+to run-away
+  find-predictors ;;find if there is any predictors around
+  if any? threats
+  [
+    find-nearest-predictor  ;;find the nearest one
+     if distance nearest-predictor < escape-range
+    ;;if nearest predictor close than eascape range, means the bird must escape, or will be kill, then try to escape
+    [escape]
+  ]
+>>>>>>> Stashed changes
 
 end
 
+to find-predictors
+  set threats predictors in-radius vision
+
+end
+
+to find-nearest-predictor ;; turtle procedure
+  set nearest-predictor min-one-of threats [distance myself]
+end
+
+to escape
+    ;;if the bird fly in almost the same direction (deviation within 90 degeree) with the predictor
+  ;;make the bird turn around
+  ;;other direction, eascape to change to the same direction of the predictor
+  ;;fly with 1.5 times of the normal speed to eascape
+  ;;user can change the deviation angle of heading called eascape-turn
+
+
+  ;;if (abs (subtract-headings heading [heading] of nearest-predictor) )> 100
+  ;;turn-away ([heading] of nearest-predictor) 90
+  ;;set heading ([heading] of nearest-predictor) - escape-turn
+  ifelse (abs (heading - [heading] of nearest-predictor) ) < 90
+  [set heading (heading) + 180 + escape-turn
+  fd 1.5]
+  [set heading ([heading] of nearest-predictor) + escape-turn
+    fd 1.5]
+  ;;set heading random [heading] of nearest-predictor 359
+  ;;right random 0 [heading] of nearest-predictor
+end
 
 to flock  ;; turtle procedure
   find-flockmates
@@ -132,7 +213,7 @@ end
 ;;
 
 to find-flockmates  ;; turtle procedure
-  set flockmates other prays in-radius version
+  set flockmates other prays in-radius vision
 end
 
 
@@ -270,7 +351,11 @@ PrayGpoupNumber
 PrayGpoupNumber
 0
 1000
+<<<<<<< Updated upstream
 389.0
+=======
+503.0
+>>>>>>> Stashed changes
 1
 1
 NIL
@@ -368,6 +453,51 @@ escapeRange
 0
 100
 22.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+161
+493
+333
+526
+kill-range
+kill-range
+0
+30
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+204
+557
+377
+590
+escape-range
+escape-range
+0
+30000
+30000.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+338
+653
+511
+686
+escape-turn
+escape-turn
+0
+30
+30.0
 1
 1
 NIL
