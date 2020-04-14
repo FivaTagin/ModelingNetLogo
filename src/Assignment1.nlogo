@@ -2,16 +2,15 @@ breed [ prays a-pray ]
 breed [ predictors a-predictor ]
 turtles-own [
   flockmates         ;; agentset of nearby turtles
-<<<<<<< Updated upstream
-  treats             ;; agentset of nearby predictors
-=======
   threats             ;; agentset of nearby predictors
->>>>>>> Stashed changes
   nearest-neighbor   ;; closest one of our flockmates
   nearest-predictor  ;; closest one of predictor
   around-birds             ;; agentset of nearby birds
   nearest-bird  ;; closest one of birds
+  weight-target ;; creat a value of weight that can used to decide which pray is the most weakest
 ]
+
+
 
 globals [
   location-x location-y
@@ -20,10 +19,6 @@ globals [
   max-align-turn
   max-cohere-turn
   max-separate-turn
-
-  target
-  weight-preditor
-
 ]
 
 to Reset
@@ -34,8 +29,6 @@ to Reset
   set max-align-turn 19.00
   set max-cohere-turn 0.75 ;; must be a value for change directions
   set max-separate-turn 3.5
-  set target 0
-  set weight-preditor 0
 
   create-prays PrayGpoupNumber
     [
@@ -67,29 +60,36 @@ to Start
   ; stop the model if there are no wolves and the number of sheep gets very large
   if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
 
-  every timeofgiveup [set target random PrayGpoupNumber]
-<<<<<<< Updated upstream
+
+
+  ;; where is the weakest target in the pray's group.
+
   ask turtles [
-    flock
-    if color = white [
-      let temp 0
-      ask other turtles [if color = yellow [set temp distance myself]]
-
-      ifelse temp < Minimum-Range-Pred [fd escapeRange] [fd 1]
-    ]
+    if color = white [func-searchingTheWeakestPray]
   ]
-  repeat 5 [ ask prays [ fd 0.2 ] display ]
 
-  ask predictors [catch_pray]
-=======
+
+  ;; behavior of prays.
   ask prays [
              run-away
              flock]
 
   repeat 5 [ ask prays [ fd 0.2 ] display ]
 
-  ask predictors [fd 1 ]
->>>>>>> Stashed changes
+
+  ;; behavior of preditors.
+
+
+  ask predictors [
+    ;; make the preditor cheasing the weakest pray.
+
+    fd SpeedofPreditor ]
+
+  every timeofgiveup [
+    ask predictors [
+      face min-one-of prays [weight-target]
+    ]
+  ]
 
   tick
 end
@@ -107,6 +107,12 @@ to killbird
   ]
 end
 
+;; the function of update the weight
+to func-searchingTheWeakestPray
+  ;; give a weight for each pray that shows how many prays is arrouding itselfs.
+  set weight-target count prays in-radius 100
+end
+
 to find-birds
    set around-birds prays in-radius vision ;;find around birds in vision
 
@@ -116,12 +122,6 @@ to  find-nearest-bird
   set nearest-bird min-one-of around-birds [distance myself] ;;find nearest one
 end
 
-<<<<<<< Updated upstream
-to catch_pray  ; turtle procedure
-  ;face turtle (who - target)
-
-  fd random 1
-=======
 to wander
   rt random 360
   fd 0.5
@@ -137,7 +137,6 @@ to run-away
     ;;if nearest predictor close than eascape range, means the bird must escape, or will be kill, then try to escape
     [escape]
   ]
->>>>>>> Stashed changes
 
 end
 
@@ -172,50 +171,19 @@ end
 
 to flock  ;; turtle procedure
   find-flockmates
-  find-predictor
   if any? flockmates
-    [
-      find-nearest-neighbor
+    [ find-nearest-neighbor
       ifelse distance nearest-neighbor < minimum-separation
         [ separate ]
         [ align
-          cohere ]
-
-      ;; add avoid functionality current is usless
-      ;find-nearest-predictor
-      ;if distance nearest-predictor < Minimum-Range-Pred
-      ;  [avoid-pred]
-
-  ]
+          cohere ] ]
 
 
 end
-
-to avoid-pred
-
-end
-
-
-;;
-;; new functions/ current is usless
-;;
-
-;to find-predictor  ;; turtle procedure
-;  set treats other prays in-radius version
-;end
-
-;to find-nearest-predictor ;; turtle procedure
-;  set nearest-predictor min-one-of treats [distance myself]
-;end
-
-;;
-;;current is usless
-;;
 
 to find-flockmates  ;; turtle procedure
   set flockmates other prays in-radius vision
 end
-
 
 to find-nearest-neighbor ;; turtle procedure
   set nearest-neighbor min-one-of flockmates [distance myself]
@@ -351,11 +319,7 @@ PrayGpoupNumber
 PrayGpoupNumber
 0
 1000
-<<<<<<< Updated upstream
-389.0
-=======
 503.0
->>>>>>> Stashed changes
 1
 1
 NIL
@@ -393,66 +357,32 @@ true
 "" ""
 PENS
 "pen-1" 1.0 0 -7500403 true "" "plot count prays"
-"nearest-predictor" 1.0 0 -2674135 true "" "ask turtle [plot count nearest-predictor]"
 
 SLIDER
-145
+176
+408
 348
-323
-381
-Minimum-Range-Pred
-Minimum-Range-Pred
+441
+Dist_Pred
+Dist_Pred
 0
-100
-9.25
+1000
+293.0
 0.25
 1
 NIL
 HORIZONTAL
 
 SLIDER
-145
-416
-323
-449
+164
+448
+336
+481
 timeofgiveup
 timeofgiveup
 0
 20
-5.0
-1
-1
-NIL
-HORIZONTAL
-
-OUTPUT
-293
-517
-533
-571
-11
-
-MONITOR
-462
-230
-563
-275
-distance of egal
-weight-preditor
-17
-1
-11
-
-SLIDER
-145
-382
-322
-415
-escapeRange
-escapeRange
-0
-100
-22.0
+6.0
 1
 1
 NIL
@@ -474,31 +404,46 @@ NIL
 HORIZONTAL
 
 SLIDER
-204
-557
-377
-590
+161
+543
+334
+576
 escape-range
 escape-range
 0
-30000
-30000.0
+3000000
+911392.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-338
-653
-511
-686
+155
+598
+328
+631
 escape-turn
 escape-turn
 0
 30
 30.0
 1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+371
+406
+543
+439
+SpeedofPreditor
+SpeedofPreditor
+0
+5
+1.0
+0.5
 1
 NIL
 HORIZONTAL
