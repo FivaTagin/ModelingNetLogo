@@ -1,139 +1,27 @@
-breed [ prays a-pray ]
-breed [ predictors a-predictor ]
 turtles-own [
   flockmates         ;; agentset of nearby turtles
-  threats             ;; agentset of nearby predictors
   nearest-neighbor   ;; closest one of our flockmates
-  nearest-predictor  ;; closest one of predictor
-  around-birds             ;; agentset of nearby birds
-  nearest-bird  ;; closest one of birds
-  weight-target ;; creat a value of weight that can used to decide which pray is the most weakest
 ]
 
-globals [
-  location-x location-y
-
-]
 to setup
   clear-all
-  create-prays population
-    [ set color white  ;; random shades look nice
+  create-turtles population
+    [ set color yellow - 2 + random 7  ;; random shades look nice
       set size 0.5  ;; easier to see
       setxy random-xcor random-ycor
       set flockmates no-turtles ]
-
-  create-predictors  1
-    [
-
-    set shape  "default"
-    set color yellow
-    set size 2  ; easier to see
-    set label-color blue - 2
-    ;;set energy random (2 * sheep-gain-from-food)
-    setxy random-xcor random-ycor]
   reset-ticks
 end
 
 to go
-  ;; where is the weakest target in the pray's group.
-  ask turtles [
-    if color = white [func-searchingTheWeakestPray
-			run-away
-    			flock]
-
-
-  ]
-  ;ask turtles [ flock ]
+  ask turtles [ flock ]
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
   repeat 5 [ ask turtles [ fd 0.2 ] display ]
   ;; for greater efficiency, at the expense of smooth
   ;; animation, substitute the following line instead:
   ;;   ask turtles [ fd 1 ]
-
-
-
-  ;; behavior of preditors.
-
-
-  ask predictors [
-    ;; make the preditor cheasing the weakest pray.
-    fd 1
-
-  ]
-
-
-
-  every 1 [
-    ask predictors [
-      let t max-one-of prays [weight-target]
-      ask links [hide-link]
-      face max-one-of prays [weight-target]
-      create-link-with t
-      if CheasingLine = false [ask links [hide-link] ]
-    ]
-  ]
-
-
   tick
-end
-;; the function of update the weight
-to func-searchingTheWeakestPray
-  ;; give a weight for each pray that shows how many prays is arrouding itselfs.
-  set weight-target count prays in-radius 100
-end
-to find-birds
-   set around-birds prays in-radius vision ;;find around birds in vision
-
-end
-to  find-nearest-bird
-  set nearest-bird min-one-of around-birds [distance myself] ;;find nearest one
-end
-to wander
-  rt random 360
-  fd 0.5
-  ;; random direction
-end
-
-to run-away
-  find-predictors ;;find if there is any predictors around
-  if any? threats
-  [
-    find-nearest-predictor  ;;find the nearest one
-     if distance nearest-predictor < escape-range
-    ;;if nearest predictor close than eascape range, means the bird must escape, or will be kill, then try to escape
-    [escape]
-  ]
-
-end
-
-to find-predictors
-  set threats predictors in-radius vision
-
-end
-
-to find-nearest-predictor ;; turtle procedure
-  set nearest-predictor min-one-of threats [distance myself]
-end
-
-to escape
-    ;;if the bird fly in almost the same direction (deviation within 90 degeree) with the predictor
-  ;;make the bird turn around
-  ;;other direction, eascape to change to the same direction of the predictor
-  ;;fly with 1.5 times of the normal speed to eascape
-  ;;user can change the deviation angle of heading called eascape-turn
-
-
-  ;;if (abs (subtract-headings heading [heading] of nearest-predictor) )> 100
-  ;;turn-away ([heading] of nearest-predictor) 90
-  ;;set heading ([heading] of nearest-predictor) - escape-turn
-  ifelse (abs (heading - [heading] of nearest-predictor) ) < 90
-  [set heading (heading) + 180 + escape-turn
-  fd 3]
-  [set heading ([heading] of nearest-predictor) + escape-turn
-    fd 3]
-  ;;set heading random [heading] of nearest-predictor 359
-  ;;right random 0 [heading] of nearest-predictor
 end
 
 to flock  ;; turtle procedure
@@ -147,7 +35,7 @@ to flock  ;; turtle procedure
 end
 
 to find-flockmates  ;; turtle procedure
-  set flockmates other prays in-radius vision
+  set flockmates other turtles in-radius vision
 end
 
 to find-nearest-neighbor ;; turtle procedure
@@ -288,7 +176,7 @@ population
 population
 1.0
 1000.0
-251.0
+300.0
 1.0
 1
 NIL
@@ -303,7 +191,7 @@ max-align-turn
 max-align-turn
 0.0
 20.0
-13.25
+20.0
 0.25
 1
 degrees
@@ -318,7 +206,7 @@ max-cohere-turn
 max-cohere-turn
 0.0
 20.0
-12.25
+12.5
 0.25
 1
 degrees
@@ -333,7 +221,7 @@ max-separate-turn
 max-separate-turn
 0.0
 20.0
-9.0
+20.0
 0.25
 1
 degrees
@@ -363,52 +251,11 @@ minimum-separation
 minimum-separation
 0.0
 5.0
-0.25
+0.5
 0.25
 1
 patches
 HORIZONTAL
-
-SLIDER
-2
-412
-239
-445
-escape-range
-escape-range
-0
-100
-100.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-4
-450
-237
-483
-escape-turn
-escape-turn
-0
-100
-100.0
-1
-1
-NIL
-HORIZONTAL
-
-SWITCH
-58
-367
-186
-400
-CheasingLine
-CheasingLine
-0
-1
--1000
 
 @#$#@#$#@
 ## WHAT IS IT?

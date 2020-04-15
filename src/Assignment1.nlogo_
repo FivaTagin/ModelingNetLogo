@@ -21,21 +21,21 @@ globals [
   max-separate-turn
 ]
 
-to Reset
+to Setup
   clear-all
   ;;set-default-shape turtles "ant"
-  set vision 5
-  set minimum-separation 0.5
-  set max-align-turn 19.00
-  set max-cohere-turn 0.75 ;; must be a value for change directions
-  set max-separate-turn 3.5
+  set vision 10
+  set minimum-separation 0.25
+  set max-align-turn 13.25
+  set max-cohere-turn 12.25 ;; must be a value for change directions
+  set max-separate-turn 9
 
   create-prays PrayGpoupNumber
     [
 
     set shape  "default"
     set color white
-    set size 0.3  ; easier to see
+    set size 0.5  ; easier to see
     set label-color blue - 2
     ;;set energy random (2 * sheep-gain-from-food)
     setxy random-xcor random-ycor]
@@ -55,7 +55,7 @@ to Reset
   reset-ticks
 end
 
-to Start
+to go
 
   ; stop the model if there are no wolves and the number of sheep gets very large
   if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
@@ -74,7 +74,7 @@ to Start
              run-away
              flock]
 
-  repeat 5 [ ask prays [ fd 0.2 ] display ]
+  repeat 5 [ ask prays [ fd SpeedofPrays ] display ]
 
 
   ;; behavior of preditors.
@@ -84,6 +84,12 @@ to Start
     ;; make the preditor cheasing the weakest pray.
 
     fd SpeedofPreditor ]
+
+  every timeofgiveup [
+    ask predictors [
+      face min-one-of prays [weight-target]
+    ]
+  ]
 
   tick
 end
@@ -156,9 +162,9 @@ to escape
   ;;set heading ([heading] of nearest-predictor) - escape-turn
   ifelse (abs (heading - [heading] of nearest-predictor) ) < 90
   [set heading (heading) + 180 + escape-turn
-  fd 1.5]
+  fd 3]
   [set heading ([heading] of nearest-predictor) + escape-turn
-    fd 1.5]
+    fd 3]
   ;;set heading random [heading] of nearest-predictor 359
   ;;right random 0 [heading] of nearest-predictor
 end
@@ -201,6 +207,7 @@ to-report average-flockmate-heading  ;; turtle procedure
   ;; not 180.  So we have to use trigonometry.
   let x-component sum [dx] of flockmates
   let y-component sum [dy] of flockmates
+  fd 3
   ifelse x-component = 0 and y-component = 0
     [ report heading ]
     [ report atan x-component y-component ]
@@ -244,13 +251,13 @@ to turn-at-most [turn max-turn]  ;; turtle procedure
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-573
-10
-1894
-812
+656
+23
+1484
+852
 -1
 -1
-13.0
+11.55
 1
 10
 1
@@ -260,10 +267,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--50
-50
--30
-30
+-35
+35
+-35
+35
 0
 0
 1
@@ -276,7 +283,7 @@ BUTTON
 243
 46
 Reset Value
-Reset
+Setup
 NIL
 1
 T
@@ -288,12 +295,12 @@ NIL
 1
 
 BUTTON
-249
-13
-367
-46
+250
+14
+368
+47
 Start Simluation
-Start
+go
 T
 1
 T
@@ -313,7 +320,7 @@ PrayGpoupNumber
 PrayGpoupNumber
 0
 1000
-503.0
+306.0
 1
 1
 NIL
@@ -361,7 +368,7 @@ Dist_Pred
 Dist_Pred
 0
 1000
-293.0
+490.5
 0.25
 1
 NIL
@@ -376,7 +383,7 @@ timeofgiveup
 timeofgiveup
 0
 20
-20.0
+2.0
 1
 1
 NIL
@@ -406,7 +413,7 @@ escape-range
 escape-range
 0
 3000000
-911392.0
+0.0
 1
 1
 NIL
@@ -421,7 +428,7 @@ escape-turn
 escape-turn
 0
 30
-30.0
+21.0
 1
 1
 NIL
@@ -436,8 +443,23 @@ SpeedofPreditor
 SpeedofPreditor
 0
 5
-1.5
+3.5
 0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+374
+444
+546
+477
+SpeedofPrays
+SpeedofPrays
+0
+1
+0.1
+0.1
 1
 NIL
 HORIZONTAL

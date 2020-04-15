@@ -1,96 +1,260 @@
-globals[flag]
-breed[cats cat]
-breed[dogs dog]
-to update_heading;red to find black
-  let x1 1
-  let y1 1
-  let x2 1
-  let y2 1
-  let hea 0
-  ask turtles with [color = red][
-    set x1 pxcor
-    set y1 pycor
-  ]
-  ask turtles with [color = white][
-    set x2 pxcor - x1
-    set y2 pycor - y1
-  ]
-  if x2 = 0 and y2 = 0
-  [
-    set flag 1
-    stop
-  ]
-  let turn_corn 0
-  show x2
-  show y2
-  set turn_corn acos( y2 / sqrt( x2 * x2 + y2 * y2 ) )
-  ifelse x2 >= 0[
-     ask turtles with [color = red][set heading turn_corn]
-  ][
-     ask turtles with [color = red][set heading 360 - turn_corn]
-  ]
-end
+breed [ prays a-pray ]
+breed [ predictors a-predictor ]
+turtles-own [
+  flockmates         ;; agentset of nearby turtles
+  threats             ;; agentset of nearby predictors
+  nearest-neighbor   ;; closest one of our flockmates
+  nearest-predictor  ;; closest one of predictor
+  around-birds             ;; agentset of nearby birds
+  nearest-bird  ;; closest one of birds
+  weight-target ;; creat a value of weight that can used to decide which pray is the most weakest
+]
 
-to setup
+
+
+globals [
+  location-x location-y
+  vision
+  minimum-separation
+  max-align-turn
+  max-cohere-turn
+  max-separate-turn
+]
+
+to Setup
   clear-all
-  reset-ticks
-  set flag 0
-  set-default-shape turtles "wolf"
-  create-dogs 1[
-    set color red
-    setxy random-xcor random-ycor
-  ]
-  set-default-shape turtles "sheep"
-  create-cats [
+  ;;set-default-shape turtles "ant"
+  set vision 10
+  set minimum-separation 0.25
+  set max-align-turn 13.25
+  set max-cohere-turn 12.25 ;; must be a value for change directions
+  set max-separate-turn 9
+
+  create-prays PrayGpoupNumber
+    [
+
+    set shape  "default"
     set color white
-    setxy random-xcor random-ycor
-  ]
-  ask turtles with [color = red][
-    create-links-with other turtles
-    if links-two = false [ask links [hide-link] ]
-  ]
+    set size 0.5  ; easier to see
+    set label-color blue - 2
+    ;;set energy random (2 * sheep-gain-from-food)
+    setxy random-xcor random-ycor]
+
+
+  create-predictors EagleGroupNumber
+    [
+
+    set shape  "default"
+    set color yellow
+    set size 2  ; easier to see
+    set label-color blue - 2
+    ;;set energy random (2 * sheep-gain-from-food)
+    setxy random-xcor random-ycor]
+
+
+  reset-ticks
 end
 
 to go
-  update_heading
-  ask turtles[
 
-    if color = white[
-      right random 90
-      left random 90
-      fd -0.3
-    ]
-    if color = white [
-      let temp 0
-      ask other turtles [if color = red [set temp distance myself]]
+  ; stop the model if there are no wolves and the number of sheep gets very large
+  if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
 
-      ifelse temp < RunDistance [fd 10] [fd 1]
 
-    ]
 
-    if color = red [
-      fd 0.5
-    ]
+  ;; where is the weakest target in the pray's group.
 
+  ask turtles [
+    if color = white [func-searchingTheWeakestPray]
   ]
-  if flag = 1[stop]
-  let d 0
-  ask turtles[
-    if color = white[ask other turtles[set d distance myself]]
 
 
+  ;; behavior of prays.
+  ask prays [
+             run-away
+             flock]
+
+  repeat 5 [ ask prays [ fd SpeedofPrays ] display ]
+
+
+  ;; behavior of preditors.
+
+
+  ask predictors [
+    ;; make the preditor cheasing the weakest pray.
+
+    fd SpeedofPreditor ]
+
+  every timeofgiveup [
+    ask predictors [
+      face min-one-of prays [weight-target]
+    ]
   ]
-  set-current-plot "Distance"
-  set-current-plot-pen "catch"
-  plot d
+
   tick
+end
+
+to killbird
+  find-birds ;;find all birds around
+  if any? around-birds
+  [
+    find-nearest-bird ;;find the nearest bird
+    ifelse distance nearest-bird < kill-range ;;check if it is in the kill-range
+    [ask nearest-bird [die] ;;kill the nearest one
+    wander] ;;wander with random direction
+    [wander]
+
+  ]
+end
+
+;; the function of update the weight
+to func-searchingTheWeakestPray
+  ;; give a weight for each pray that shows how many prays is arrouding itselfs.
+  set weight-target count prays in-radius 100
+end
+
+to find-birds
+   set around-birds prays in-radius vision ;;find around birds in vision
+
+end
+
+to  find-nearest-bird
+  set nearest-bird min-one-of around-birds [distance myself] ;;find nearest one
+end
+
+to wander
+  rt random 360
+  fd 0.5
+  ;; random direction
+end
+
+to run-away
+  find-predictors ;;find if there is any predictors around
+  if any? threats
+  [
+    find-nearest-predictor  ;;find the nearest one
+     if distance nearest-predictor < escape-range
+    ;;if nearest predictor close than eascape range, means the bird must escape, or will be kill, then try to escape
+    [escape]
+  ]
+
+end
+
+to find-predictors
+  set threats predictors in-radius vision
+
+end
+
+to find-nearest-predictor ;; turtle procedure
+  set nearest-predictor min-one-of threats [distance myself]
+end
+
+to escape
+    ;;if the bird fly in almost the same direction (deviation within 90 degeree) with the predictor
+  ;;make the bird turn around
+  ;;other direction, eascape to change to the same direction of the predictor
+  ;;fly with 1.5 times of the normal speed to eascape
+  ;;user can change the deviation angle of heading called eascape-turn
+
+
+  ;;if (abs (subtract-headings heading [heading] of nearest-predictor) )> 100
+  ;;turn-away ([heading] of nearest-predictor) 90
+  ;;set heading ([heading] of nearest-predictor) - escape-turn
+  ifelse (abs (heading - [heading] of nearest-predictor) ) < 90
+  [set heading (heading) + 180 + escape-turn
+  fd 3]
+  [set heading ([heading] of nearest-predictor) + escape-turn
+    fd 3]
+  ;;set heading random [heading] of nearest-predictor 359
+  ;;right random 0 [heading] of nearest-predictor
+end
+
+to flock  ;; turtle procedure
+  find-flockmates
+  if any? flockmates
+    [ find-nearest-neighbor
+      ifelse distance nearest-neighbor < minimum-separation
+        [ separate ]
+        [ align
+          cohere ] ]
+
+
+end
+
+to find-flockmates  ;; turtle procedure
+  set flockmates other prays in-radius vision
+end
+
+to find-nearest-neighbor ;; turtle procedure
+  set nearest-neighbor min-one-of flockmates [distance myself]
+end
+
+;;; SEPARATE
+
+to separate  ;; turtle procedure
+  turn-away ([heading] of nearest-neighbor) max-separate-turn
+end
+
+;;; ALIGN
+
+to align  ;; turtle procedure
+  turn-towards average-flockmate-heading max-align-turn
+end
+
+to-report average-flockmate-heading  ;; turtle procedure
+  ;; We can't just average the heading variables here.
+  ;; For example, the average of 1 and 359 should be 0,
+  ;; not 180.  So we have to use trigonometry.
+  let x-component sum [dx] of flockmates
+  let y-component sum [dy] of flockmates
+  fd 3
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
+
+;;; COHERE
+
+to cohere  ;; turtle procedure
+  turn-towards average-heading-towards-flockmates max-cohere-turn
+end
+
+to-report average-heading-towards-flockmates  ;; turtle procedure
+  ;; "towards myself" gives us the heading from the other turtle
+  ;; to me, but we want the heading from me to the other turtle,
+  ;; so we add 180
+  let x-component mean [sin (towards myself + 180)] of flockmates
+  let y-component mean [cos (towards myself + 180)] of flockmates
+  ifelse x-component = 0 and y-component = 0
+    [ report heading ]
+    [ report atan x-component y-component ]
+end
+
+;;; HELPER PROCEDURES
+
+to turn-towards [new-heading max-turn]  ;; turtle procedure
+  turn-at-most (subtract-headings new-heading heading) max-turn
+end
+
+to turn-away [new-heading max-turn]  ;; turtle procedure
+  turn-at-most (subtract-headings heading new-heading) max-turn
+end
+
+;; turn right by "turn" degrees (or left if "turn" is negative),
+;; but never turn more than "max-turn" degrees
+to turn-at-most [turn max-turn]  ;; turtle procedure
+  ifelse abs turn > max-turn
+    [ ifelse turn > 0
+        [ rt max-turn ]
+        [ lt max-turn ] ]
+    [ rt turn ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-252
+573
 10
-689
-448
+1894
+812
 -1
 -1
 13.0
@@ -103,10 +267,10 @@ GRAPHICS-WINDOW
 1
 1
 1
--16
-16
--16
-16
+-50
+50
+-30
+30
 0
 0
 1
@@ -114,12 +278,12 @@ ticks
 30.0
 
 BUTTON
-85
-50
-148
-83
-NIL
-setup
+146
+13
+243
+46
+Reset Value
+Setup
 NIL
 1
 T
@@ -131,11 +295,11 @@ NIL
 1
 
 BUTTON
-123
-153
-186
-186
-NIL
+250
+14
+368
+47
+Start Simluation
 go
 T
 1
@@ -147,46 +311,155 @@ NIL
 NIL
 1
 
-PLOT
-27
-288
-227
-438
-Distance
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"catch" 1.0 0 -16777216 true "" "plot count turtles"
-
-SWITCH
-88
-216
-192
-249
-links-two
-links-two
+SLIDER
+145
+65
+317
+98
+PrayGpoupNumber
+PrayGpoupNumber
 0
+1000
+306.0
 1
--1000
+1
+NIL
+HORIZONTAL
 
 SLIDER
-59
-129
-231
-162
-RunDistance
-RunDistance
+146
+103
+318
+136
+EagleGroupNumber
+EagleGroupNumber
 0
-50
-1.5
+100
+1.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+140
+149
+340
+299
+Values
+Time
+GroupWight
+0.0
+100.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"pen-1" 1.0 0 -7500403 true "" "plot count prays"
+
+SLIDER
+176
+408
+348
+441
+Dist_Pred
+Dist_Pred
+0
+1000
+490.5
+0.25
+1
+NIL
+HORIZONTAL
+
+SLIDER
+164
+448
+336
+481
+timeofgiveup
+timeofgiveup
+0
+20
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+161
+493
+333
+526
+kill-range
+kill-range
+0
+30
+0.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+161
+543
+334
+576
+escape-range
+escape-range
+0
+3000000
+740506.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+155
+598
+328
+631
+escape-turn
+escape-turn
+0
+30
+21.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+371
+406
+543
+439
+SpeedofPreditor
+SpeedofPreditor
+0
+5
+4.5
 0.5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+374
+444
+546
+477
+SpeedofPrays
+SpeedofPrays
+0
+1
+0.7
+0.1
 1
 NIL
 HORIZONTAL
