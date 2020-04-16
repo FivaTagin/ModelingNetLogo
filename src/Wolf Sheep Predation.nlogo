@@ -39,7 +39,11 @@ to setup
   [
     set shape  "sheep"
     set color white
+<<<<<<< Updated upstream
     set size 1.5  ; easier to see
+=======
+    set size 0.5  ; easier to see
+>>>>>>> Stashed changes
     set label-color blue - 2
     set energy 10
     ;set range-move range
@@ -50,11 +54,19 @@ to setup
 
   ]
 
+<<<<<<< Updated upstream
   create-sheepTwo initial-number-sheep  ; create the sheep, then initialize their variables
   [
     set shape  "sheep"
     set color Black
     set size 1.5  ; easier to see
+=======
+  create-sheepTwo initial-number-sheepTwo  ; create the sheep, then initialize their variables
+  [
+    set shape  "sheep"
+    set color Black
+    set size 0.5  ; easier to see
+>>>>>>> Stashed changes
     set label-color blue - 2
     set energy 10
     set xcor random 60
@@ -73,7 +85,13 @@ to go
   ;if not any? turtles [ stop ]
   ; stop the model if there are no wolves and the number of sheep gets very large
   ;if not any? wolves and count sheep > max-sheep [ user-message "The sheep have inherited the earth" stop ]
+<<<<<<< Updated upstream
   ask sheep [
+=======
+  ask turtles [
+
+    if color = white [
+>>>>>>> Stashed changes
     move
 
     ; in this version, sheep eat grass, grass grows, and it costs sheep energy to move
@@ -85,6 +103,10 @@ to go
 
     reproduce-sheep  ;
   ]
+<<<<<<< Updated upstream
+=======
+  ]
+>>>>>>> Stashed changes
   ask sheepTwo [
     moveTwo
 
@@ -118,7 +140,11 @@ end
 to moveTwo  ; turtle procedure
   ;if y > 20[
   set xcor random 60
+<<<<<<< Updated upstream
   set ycor random 40
+=======
+  set ycor 1 + random 40
+>>>>>>> Stashed changes
   rt random 50
   lt random 50
   fd 1
@@ -222,7 +248,11 @@ initial-number-sheep
 initial-number-sheep
 0
 250
+<<<<<<< Updated upstream
 9.0
+=======
+3.0
+>>>>>>> Stashed changes
 1
 1
 NIL
@@ -244,15 +274,26 @@ NIL
 HORIZONTAL
 
 SLIDER
+<<<<<<< Updated upstream
 40
 100
 252
 133
+=======
+0
+270
+212
+303
+>>>>>>> Stashed changes
 grass-regrowth-time
 grass-regrowth-time
 0
 100
+<<<<<<< Updated upstream
 38.0
+=======
+20.0
+>>>>>>> Stashed changes
 1
 1
 NIL
@@ -354,6 +395,7 @@ model-version
 "sheep-wolves" "sheep-grass"
 1
 
+<<<<<<< Updated upstream
 SLIDER
 180
 60
@@ -369,6 +411,8 @@ SheepTwo-movement
 NIL
 HORIZONTAL
 
+=======
+>>>>>>> Stashed changes
 MONITOR
 215
 310
@@ -395,6 +439,7 @@ birth-energy
 NIL
 HORIZONTAL
 
+<<<<<<< Updated upstream
 SLIDER
 205
 175
@@ -410,6 +455,8 @@ range
 NIL
 HORIZONTAL
 
+=======
+>>>>>>> Stashed changes
 BUTTON
 225
 145
@@ -427,6 +474,24 @@ NIL
 NIL
 1
 
+<<<<<<< Updated upstream
+=======
+SLIDER
+5
+100
+212
+133
+initial-number-sheepTwo
+initial-number-sheepTwo
+0
+250
+4.0
+1
+1
+NIL
+HORIZONTAL
+
+>>>>>>> Stashed changes
 @#$#@#$#@
 ## WHAT IS IT?
 
