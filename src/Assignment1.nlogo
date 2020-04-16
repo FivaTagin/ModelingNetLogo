@@ -2,42 +2,27 @@ breed [ prays a-pray ]
 breed [ predictors a-predictor ]
 turtles-own [
   flockmates         ;; agentset of nearby turtles
+  threats             ;; agentset of nearby predictors
   nearest-neighbor   ;; closest one of our flockmates
   nearest-predictor  ;; closest one of predictor
+  around-birds             ;; agentset of nearby birds
+  nearest-bird  ;; closest one of birds
+  weight-target ;; creat a value of weight that can used to decide which pray is the most weakest
 ]
 
 globals [
   location-x location-y
-  version
-  minimum-separation
-  max-align-turn
-  max-cohere-turn
-  max-separate-turn
 
-  target
 ]
-
-to Reset
+to setup
   clear-all
-  ;;set-default-shape turtles "ant"
-  set version 5
-  set minimum-separation 0.5
-  set max-align-turn 19.00
-  set max-cohere-turn 0.75 ;; must be a value for change directions
-  set max-separate-turn 3.5
-  set target 0
-  create-prays PrayGpoupNumber
-    [
+  create-prays population
+    [ set color white  ;; random shades look nice
+      set size 0.5  ;; easier to see
+      setxy random-xcor random-ycor
+      set flockmates no-turtles ]
 
-    set shape  "default"
-    set color white
-    set size 0.3  ; easier to see
-    set label-color blue - 2
-    ;;set energy random (2 * sheep-gain-from-food)
-    setxy random-xcor random-ycor]
-
-
-  create-predictors EagleGroupNumber
+  create-predictors  1
     [
 
     set shape  "default"
@@ -46,35 +31,110 @@ to Reset
     set label-color blue - 2
     ;;set energy random (2 * sheep-gain-from-food)
     setxy random-xcor random-ycor]
-
-
   reset-ticks
 end
 
-to Start
+to go
+  ;; where is the weakest target in the pray's group.
+  ask turtles [
+    if color = white [func-searchingTheWeakestPray
+			run-away
+    			flock]
 
-  ; stop the model if there are no wolves and the number of sheep gets very large
-  if not any? predictors or not any? prays [ user-message "Show some animals!" stop ]
 
-  every timeofgiveup [set target random PrayGpoupNumber]
-  ask prays [flock]
-  repeat 5 [ ask prays [ fd 0.2 ] display ]
+  ]
+  ;ask turtles [ flock ]
+  ;; the following line is used to make the turtles
+  ;; animate more smoothly.
+  repeat 5 [ ask turtles [ fd 0.2 ] display ]
+  ;; for greater efficiency, at the expense of smooth
+  ;; animation, substitute the following line instead:
+  ;;   ask turtles [ fd 1 ]
 
-  ;ask predictors [catch_pray]
+
+
+  ;; behavior of preditors.
+
+
+  ask predictors [
+    ;; make the preditor cheasing the weakest pray.
+    fd 1
+
+  ]
+
+
+
+  every 1 [
+    ask predictors [
+      let t max-one-of prays [weight-target]
+      ask links [hide-link]
+      face max-one-of prays [weight-target]
+      create-link-with t
+      if CheasingLine = false [ask links [hide-link] ]
+    ]
+  ]
+
 
   tick
+end
+;; the function of update the weight
+to func-searchingTheWeakestPray
+  ;; give a weight for each pray that shows how many prays is arrouding itselfs.
+  set weight-target count prays in-radius 100
+end
+to find-birds
+   set around-birds prays in-radius vision ;;find around birds in vision
 
+end
+to  find-nearest-bird
+  set nearest-bird min-one-of around-birds [distance myself] ;;find nearest one
+end
+to wander
+  rt random 360
+  fd 0.5
+  ;; random direction
+end
+
+to run-away
+  find-predictors ;;find if there is any predictors around
+  if any? threats
+  [
+    find-nearest-predictor  ;;find the nearest one
+     if distance nearest-predictor < escape-range
+    ;;if nearest predictor close than eascape range, means the bird must escape, or will be kill, then try to escape
+    [escape]
+  ]
 
 end
 
-to catch_pray  ; turtle procedure
-  face turtle (who - target)
-
-  fd 0.8
-
+to find-predictors
+  set threats predictors in-radius vision
 
 end
 
+to find-nearest-predictor ;; turtle procedure
+  set nearest-predictor min-one-of threats [distance myself]
+end
+
+to escape
+    ;;if the bird fly in almost the same direction (deviation within 90 degeree) with the predictor
+  ;;make the bird turn around
+  ;;other direction, eascape to change to the same direction of the predictor
+  ;;fly with 1.5 times of the normal speed to eascape
+  ;;user can change the deviation angle of heading called eascape-turn
+
+
+  ;;if (abs (subtract-headings heading [heading] of nearest-predictor) )> 100
+  ;;turn-away ([heading] of nearest-predictor) 90
+  ;;set heading ([heading] of nearest-predictor) - escape-turn
+  ifelse (abs (heading - [heading] of nearest-predictor) ) < 90
+  [set heading (heading) + 180 + escape-turn
+  fd 3]
+  [set heading ([heading] of nearest-predictor) + escape-turn
+    fd 3]
+  ;;set heading random [heading] of nearest-predictor 359
+  ;;right random 0 [heading] of nearest-predictor
+end
 
 to flock  ;; turtle procedure
   find-flockmates
@@ -84,12 +144,10 @@ to flock  ;; turtle procedure
         [ separate ]
         [ align
           cohere ] ]
-
-
 end
 
 to find-flockmates  ;; turtle procedure
-  set flockmates other prays in-radius version
+  set flockmates other prays in-radius vision
 end
 
 to find-nearest-neighbor ;; turtle procedure
@@ -155,15 +213,19 @@ to turn-at-most [turn max-turn]  ;; turtle procedure
         [ lt max-turn ] ]
     [ rt turn ]
 end
+
+
+; Copyright 1998 Uri Wilensky.
+; See Info tab for full copyright and license.
 @#$#@#$#@
 GRAPHICS-WINDOW
-573
+250
 10
-1894
-812
+755
+516
 -1
 -1
-13.0
+7.0
 1
 10
 1
@@ -173,23 +235,23 @@ GRAPHICS-WINDOW
 1
 1
 1
--50
-50
--30
-30
-0
-0
+-35
+35
+-35
+35
+1
+1
 1
 ticks
 30.0
 
 BUTTON
-146
-13
-243
-46
-Reset Value
-Reset
+39
+93
+116
+126
+NIL
+setup
 NIL
 1
 T
@@ -201,12 +263,12 @@ NIL
 1
 
 BUTTON
-249
-13
-367
-46
-Start Simluation
-Start
+122
+93
+203
+126
+NIL
+go
 T
 1
 T
@@ -215,122 +277,243 @@ NIL
 NIL
 NIL
 NIL
-1
+0
 
 SLIDER
-145
-65
-317
-98
-PrayGpoupNumber
-PrayGpoupNumber
-0
-1000
-541.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-146
-103
-318
-136
-EagleGroupNumber
-EagleGroupNumber
-0
-100
+9
+51
+232
+84
+population
+population
+1.0
+1000.0
+251.0
 1.0
 1
-1
 NIL
 HORIZONTAL
 
-PLOT
-140
-149
-340
-299
-Values
-Time
-GroupWight
-0.0
-100.0
-0.0
-100.0
-true
-true
-"" ""
-PENS
-"pen-1" 1.0 0 -7500403 true "" "plot count prays"
-
 SLIDER
-145
-348
-317
-381
-Dist_Pred
-Dist_Pred
-0
-10
-4.75
+4
+217
+237
+250
+max-align-turn
+max-align-turn
+0.0
+20.0
+13.25
 0.25
 1
+degrees
+HORIZONTAL
+
+SLIDER
+4
+251
+237
+284
+max-cohere-turn
+max-cohere-turn
+0.0
+20.0
+12.25
+0.25
+1
+degrees
+HORIZONTAL
+
+SLIDER
+4
+285
+237
+318
+max-separate-turn
+max-separate-turn
+0.0
+20.0
+9.0
+0.25
+1
+degrees
+HORIZONTAL
+
+SLIDER
+9
+135
+232
+168
+vision
+vision
+0.0
+10.0
+10.0
+0.5
+1
+patches
+HORIZONTAL
+
+SLIDER
+9
+169
+232
+202
+minimum-separation
+minimum-separation
+0.0
+5.0
+0.25
+0.25
+1
+patches
+HORIZONTAL
+
+SLIDER
+2
+412
+239
+445
+escape-range
+escape-range
+0
+100
+100.0
+1
+1
 NIL
 HORIZONTAL
 
 SLIDER
-161
-429
-333
-462
-timeofgiveup
-timeofgiveup
+4
+450
+237
+483
+escape-turn
+escape-turn
 0
-20
-20.0
+100
+100.0
 1
 1
 NIL
 HORIZONTAL
+
+SWITCH
+58
+367
+186
+400
+CheasingLine
+CheasingLine
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+This model is an attempt to mimic the flocking of birds.  (The resulting motion also resembles schools of fish.)  The flocks that appear in this model are not created or led in any way by special leader birds.  Rather, each bird is following exactly the same set of rules, from which flocks emerge.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+The birds follow three rules: "alignment", "separation", and "cohesion".
+
+"Alignment" means that a bird tends to turn so that it is moving in the same direction that nearby birds are moving.
+
+"Separation" means that a bird will turn to avoid another bird which gets too close.
+
+"Cohesion" means that a bird will move towards other nearby birds (unless another bird is too close).
+
+When two birds are too close, the "separation" rule overrides the other two, which are deactivated until the minimum separation is achieved.
+
+The three rules affect only the bird's heading.  Each bird always moves forward at the same constant speed.
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+First, determine the number of birds you want in the simulation and set the POPULATION slider to that value.  Press SETUP to create the birds, and press GO to have them start flying around.
+
+The default settings for the sliders will produce reasonably good flocking behavior.  However, you can play with them to get variations:
+
+Three TURN-ANGLE sliders control the maximum angle a bird can turn as a result of each rule.
+
+VISION is the distance that each bird can see 360 degrees around it.
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+Central to the model is the observation that flocks form without a leader.
+
+There are no random numbers used in this model, except to position the birds initially.  The fluid, lifelike behavior of the birds is produced entirely by deterministic rules.
+
+Also, notice that each flock is dynamic.  A flock, once together, is not guaranteed to keep all of its members.  Why do you think this is?
+
+After running the model for a while, all of the birds have approximately the same heading.  Why?
+
+Sometimes a bird breaks away from its flock.  How does this happen?  You may need to slow down the model or run it step by step in order to observe this phenomenon.
 
 ## THINGS TO TRY
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+Play with the sliders to see if you can get tighter flocks, looser flocks, fewer flocks, more flocks, more or less splitting and joining of flocks, more or less rearranging of birds within flocks, etc.
+
+You can turn off a rule entirely by setting that rule's angle slider to zero.  Is one rule by itself enough to produce at least some flocking?  What about two rules?  What's missing from the resulting behavior when you leave out each rule?
+
+Will running the model for a long time produce a static flock?  Or will the birds never settle down to an unchanging formation?  Remember, there are no random numbers used in this model.
 
 ## EXTENDING THE MODEL
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+Currently the birds can "see" all around them.  What happens if birds can only see in front of them?  The `in-cone` primitive can be used for this.
+
+Is there some way to get V-shaped flocks, like migrating geese?
+
+What happens if you put walls around the edges of the world that the birds can't fly into?
+
+Can you get the birds to fly around obstacles in the middle of the world?
+
+What would happen if you gave the birds different velocities?  For example, you could make birds that are not near other birds fly faster to catch up to the flock.  Or, you could simulate the diminished air resistance that birds experience when flying together by making them fly faster when in a group.
+
+Are there other interesting ways you can make the birds different from each other?  There could be random variation in the population, or you could have distinct "species" of bird.
 
 ## NETLOGO FEATURES
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+Notice the need for the `subtract-headings` primitive and special procedure for averaging groups of headings.  Just subtracting the numbers, or averaging the numbers, doesn't give you the results you'd expect, because of the discontinuity where headings wrap back to 0 once they reach 360.
 
 ## RELATED MODELS
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+* Moths
+* Flocking Vee Formation
+* Flocking - Alternative Visualizations
 
 ## CREDITS AND REFERENCES
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+This model is inspired by the Boids simulation invented by Craig Reynolds.  The algorithm we use here is roughly similar to the original Boids algorithm, but it is not the same.  The exact details of the algorithm tend not to matter very much -- as long as you have alignment, separation, and cohesion, you will usually get flocking behavior resembling that produced by Reynolds' original model.  Information on Boids is available at http://www.red3d.com/cwr/boids/.
+
+## HOW TO CITE
+
+If you mention this model or the NetLogo software in a publication, we ask that you include the citations below.
+
+For the model itself:
+
+* Wilensky, U. (1998).  NetLogo Flocking model.  http://ccl.northwestern.edu/netlogo/models/Flocking.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+Please cite the NetLogo software as:
+
+* Wilensky, U. (1999). NetLogo. http://ccl.northwestern.edu/netlogo/. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+
+## COPYRIGHT AND LICENSE
+
+Copyright 1998 Uri Wilensky.
+
+![CC BY-NC-SA 3.0](http://ccl.northwestern.edu/images/creativecommons/byncsa.png)
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License.  To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/3.0/ or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
+
+Commercial licenses are also available. To inquire about commercial licenses, please contact Uri Wilensky at uri@northwestern.edu.
+
+This model was created as part of the project: CONNECTED MATHEMATICS: MAKING SENSE OF COMPLEX PHENOMENA THROUGH BUILDING OBJECT-BASED PARALLEL MODELS (OBPML).  The project gratefully acknowledges the support of the National Science Foundation (Applications of Advanced Technologies Program) -- grant numbers RED #9552950 and REC #9632612.
+
+This model was converted to NetLogo as part of the projects: PARTICIPATORY SIMULATIONS: NETWORK-BASED DESIGN FOR SYSTEMS LEARNING IN CLASSROOMS and/or INTEGRATED SIMULATION AND MODELING ENVIRONMENT. The project gratefully acknowledges the support of the National Science Foundation (REPP & ROLE programs) -- grant numbers REC #9814682 and REC-0126227. Converted from StarLogoT to NetLogo, 2002.
+
+<!-- 1998 2002 -->
 @#$#@#$#@
 default
 true
@@ -524,22 +707,6 @@ Polygon -7500403 true true 135 105 90 60 45 45 75 105 135 135
 Polygon -7500403 true true 165 105 165 135 225 105 255 45 210 60
 Polygon -7500403 true true 135 90 120 45 150 15 180 45 165 90
 
-sheep
-false
-15
-Circle -1 true true 203 65 88
-Circle -1 true true 70 65 162
-Circle -1 true true 150 105 120
-Polygon -7500403 true false 218 120 240 165 255 165 278 120
-Circle -7500403 true false 214 72 67
-Rectangle -1 true true 164 223 179 298
-Polygon -1 true true 45 285 30 285 30 240 15 195 45 210
-Circle -1 true true 3 83 150
-Rectangle -1 true true 65 221 80 296
-Polygon -1 true true 195 285 210 285 210 240 240 210 195 210
-Polygon -7500403 true false 276 85 285 105 302 99 294 83
-Polygon -7500403 true false 219 85 210 105 193 99 201 83
-
 square
 false
 0
@@ -624,13 +791,6 @@ Line -7500403 true 40 84 269 221
 Line -7500403 true 40 216 269 79
 Line -7500403 true 84 40 221 269
 
-wolf
-false
-0
-Polygon -16777216 true false 253 133 245 131 245 133
-Polygon -7500403 true true 2 194 13 197 30 191 38 193 38 205 20 226 20 257 27 265 38 266 40 260 31 253 31 230 60 206 68 198 75 209 66 228 65 243 82 261 84 268 100 267 103 261 77 239 79 231 100 207 98 196 119 201 143 202 160 195 166 210 172 213 173 238 167 251 160 248 154 265 169 264 178 247 186 240 198 260 200 271 217 271 219 262 207 258 195 230 192 198 210 184 227 164 242 144 259 145 284 151 277 141 293 140 299 134 297 127 273 119 270 105
-Polygon -7500403 true true -1 195 14 180 36 166 40 153 53 140 82 131 134 133 159 126 188 115 227 108 236 102 238 98 268 86 269 92 281 87 269 103 269 113
-
 x
 false
 0
@@ -639,6 +799,9 @@ Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
 NetLogo 6.1.1
 @#$#@#$#@
+set population 200
+setup
+repeat 200 [ go ]
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
