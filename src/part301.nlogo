@@ -1,20 +1,31 @@
-globals [ max-sheep max-sheepTwo range-move sheepNumber sheepTwoNumber sheepNumberTemp]
+globals [ max-sheepW max-sheepB range-move sheepWNumber sheepBNumber sheepNumberTemp]
 ; don't let the sheep population grow too large
 ; Sheep and wolves are both breeds of turtles
-breed [ sheep a-sheep ]  ; sheep is its own plural, so we use "a-sheep" as the singular
+breed [ sheepW a-sheepW ]  ; sheep is its own plural, so we use "a-sheep" as the singular
 ;breed [ wolves wolf ]
-breed [ sheepTwo a-sheepTwo ]
+breed [ sheepB a-sheepB ]
 turtles-own [ energy  add addOne]       ;  sheep have energy
 
 patches-own [ countdown ]    ; this is for the sheep-wolves-grass model version
 
 to addSheep
-  ask one-of sheepTwo [
+  ask one-of sheepW [
 
-      hatch 10
+      hatch 1
   ]
 
 end
+
+to addSheepTwo
+  ask one-of sheepB [
+
+      hatch 1
+  ]
+
+end
+
+
+
 
 to setup
   clear-all
@@ -22,14 +33,14 @@ to setup
 
 
   ;ifelse netlogo-web? [ set max-sheep 10000 ] [ set max-sheep 30000 ]
-  set sheepNumber 1
-  set sheepTwoNumber 1
+  set sheepWNumber 1
+  set sheepBNumber 1
   set sheepNumberTemp 1
+  set model-version  "sheep-grass"
   ; Check model-version switch
   ; if we're not modeling grass, then the sheep don't need to eat to survive
   ; otherwise each grass' state of growth and growing logic need to be set up
 
-  ifelse model-version = "sheep-grass" [
 
     ask patches [
       set pcolor one-of [ green brown ]
@@ -37,15 +48,8 @@ to setup
         [ set countdown grass-regrowth-time ]
       [ set countdown random grass-regrowth-time ] ; initialize grass regrowth clocks randomly for brown patches
     ]
-  ]
-  [
-    ask patches [ set pcolor green ]
-    ask patches[
-    if pycor = 20 [set pcolor red]
-    if pycor = 40 [set pcolor red]
-  ]
-  ]
-  create-sheep sheepNumber  ; create the sheep, then initialize their variables
+
+  create-sheepW sheepWNumber  ; create the sheep, then initialize their variables
   [
     set shape  "sheep"
     set color white
@@ -60,10 +64,10 @@ to setup
 
   ]
 
-  create-sheepTwo sheepTwoNumber  ; create the sheep, then initialize their variables
+  create-sheepB sheepBNumber  ; create the sheep, then initialize their variables
   [
     set shape  "sheep"
-    set color Black
+    set color black
     set size 0.5  ; easier to see
     set label-color blue - 2
     set energy 10
@@ -78,33 +82,39 @@ to setup-line
     if pycor = 40 [set pcolor red]
   ]
 end
+
+
 to go
   ; stop the model if there are no wolves and no sheep
   ;if not any? turtles [ stop ]
   ; stop the model if there are no wolves and the number of sheep gets very large
   ;if not any? wolves and count sheep > max-sheep [ user-message "The sheep have inherited the earth" stop ]
-  ask turtles [
 
-    if color = white [
-    ifelse count grass > 100 [
-      addSheep
-        move
-        ]
-      [ move ]
+  ;; check the population of sheep in two groups.
 
-    ; in this version, sheep eat grass, grass grows, and it costs sheep energy to move
-    if model-version = "sheep-grass" [
-      set energy energy - 1  ; deduct energy for sheep only if running sheep-wolves-grass model version
-      eat-grass  ; sheep eat grass only if running the sheep-wolves-grass model version
-      death ; sheep die from starvation only if running the sheep-wolves-grass model version
-    ]
-
-    ;reproduce-sheep  ;
+  if count grass > 100 [
+        addSheep
+        addSheepTwo
   ]
+
+
+
+
+
+  ask sheepW [
+    move
+      ; in this version, sheep eat grass, grass grows, and it costs sheep energy to move
+      if model-version = "sheep-grass" [
+        set energy energy - 1  ; deduct energy for sheep only if running sheep-wolves-grass model version
+        eat-grass  ; sheep eat grass only if running the sheep-wolves-grass model version
+        death ; sheep die from starvation only if running the sheep-wolves-grass model version
+      ]
+
   ]
-  ask sheepTwo [
+
+
+  ask sheepB [
     moveTwo
-
     ; in this version, sheep eat grass, grass grows, and it costs sheep energy to move
     if model-version = "sheep-grass" [
       set energy energy - 1  ; deduct energy for sheep only if running sheep-wolves-grass model version
@@ -114,6 +124,8 @@ to go
 
     ;reproduce-sheepTwo  ;
   ]
+
+
    ask patches [ grow-grass ]
 
   ;if model-version = "sheep-wolves-grass" [ ask patches [ grow-grass ] ]
@@ -295,17 +307,17 @@ true
 true
 "" ""
 PENS
-"sheep" 1.0 0 -612749 true "" "plot count sheep"
+"sheep" 1.0 0 -612749 true "" "plot count sheepW"
 "grass / 4" 1.0 0 -10899396 true "" "if model-version = \"sheep-wolves-grass\" [ plot count grass / 4 ]"
-"sheepTwo" 1.0 0 -7500403 true "" "plot count sheepTwo"
+"sheepTwo" 1.0 0 -7500403 true "" "plot count sheepB"
 
 MONITOR
 40
 310
 110
 355
-sheep
-count sheep
+sheepW
+count sheepW
 3
 1
 11
@@ -347,7 +359,7 @@ MONITOR
 282
 355
 sheepTwo
-count sheepTwo
+count sheepB
 17
 1
 11
