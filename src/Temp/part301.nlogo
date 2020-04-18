@@ -11,7 +11,7 @@ patches-own [ countdown ]    ; this is for the sheep-wolves-grass model version
 to addSheep
   ask one-of sheepW [
 
-      hatch 10 + weightGainSheep
+      hatch addSheepNumber + weightGainSheep
   ]
 
 end
@@ -19,7 +19,7 @@ end
 to addSheepTwo
   ask one-of sheepB [
 
-    hatch 10 + weightGainSheep
+    hatch addSheepNumber + weightGainSheep
   ]
 
 end
@@ -28,10 +28,10 @@ to checkPopulationSheepW
   let currentSheep count SheepW - sheepWNumber
 
   ifelse count SheepW < count SheepB
-  [set weightGainSheep 10]
+  [set weightGainSheep GainSheep]
   [set weightGainSheep 0]
 
-  if currentSheep >= 0 or count grass > 100 [ addSheep]
+  if currentSheep >= 0 or count grass > 50 [ addSheep]
 
 end
 
@@ -39,10 +39,10 @@ to checkPopulationSheepB
   let currentSheep count SheepB - sheepBNumber
 
     ifelse count SheepW > count SheepB
-  [set weightGainSheep 10]
+  [set weightGainSheep GainSheep]
   [set weightGainSheep 0]
 
-  if currentSheep >= 0 or count grass > 100 [ addSheepTwo]
+  if currentSheep >= 0 or count grass > 50 [ addSheepTwo]
 
 end
 
@@ -56,7 +56,7 @@ to setup
   set sheepWNumber 1
   set sheepBNumber 1
   set model-version  "sheep-grass"
-  set weightGainSheep 0
+  set weightGainSheep GainSheep
   ; Check model-version switch
   ; if we're not modeling grass, then the sheep don't need to eat to survive
   ; otherwise each grass' state of growth and growing logic need to be set up
@@ -181,29 +181,6 @@ to eat-grass  ; sheep procedure
   ]
 end
 
-to reproduce-sheep  ; sheep procedure
- ;if random-float 100 < sheep-reproduce [  ; throw "dice" to see if you will reproduce
-    ;set energy (energy / 2)                ; divide energy between parent and offspring
-    ;hatch 1 [ rt random-float 360 fd 1 ]   ; hatch an offspring and move it forward 1 step
-  ;]
-  if energy > birth-energy [
-    set energy energy - birth-energy  ;;
-    hatch 1 [ set energy birth-energy ] ;;
-    ]
-
-end
-
-to reproduce-sheepTwo  ; sheep procedure
-  ;if random-float 100 < sheep-reproduceTwo [  ; throw "dice" to see if you will reproduce
-   ; set energy (energy / 2)                ; divide energy between parent and offspring
-   ; hatch 1 [ rt random-float 360 fd 1 ]   ; hatch an offspring and move it forward 1 step
-  ;]
-  if energy > birth-energy [
-    set energy energy - birth-energy  ;;
-    hatch 1 [ set energy birth-energy ] ;;
-    ]
-
-end
 
 
 
@@ -354,10 +331,10 @@ count grass / 4
 11
 
 TEXTBOX
-20
-178
-160
-196
+0
+215
+140
+233
 Sheep settings
 11
 0.0
@@ -384,21 +361,6 @@ count sheepB
 1
 11
 
-SLIDER
-0
-235
-172
-268
-birth-energy
-birth-energy
-0
-100
-0.0
-1
-1
-NIL
-HORIZONTAL
-
 BUTTON
 225
 145
@@ -416,33 +378,46 @@ NIL
 NIL
 1
 
-BUTTON
-110
-85
-197
-118
-NIL
-addSheep\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
-5
-200
-177
-233
+0
+230
+172
+263
 sheep-gain-from-food
 sheep-gain-from-food
 0
 10
 3.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+60
+177
+93
+GainSheep
+GainSheep
+0
+10
+2.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+100
+177
+133
+addSheepNumber
+addSheepNumber
+0
+50
+10.0
 1
 1
 NIL

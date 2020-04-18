@@ -1,204 +1,124 @@
-globals [ max-sheepW max-sheepB range-move sheepWNumber sheepBNumber weightGainSheep]
-; don't let the sheep population grow too large
-; Sheep and wolves are both breeds of turtles
-breed [ sheepW a-sheepW ]  ; sheep is its own plural, so we use "a-sheep" as the singular
-;breed [ wolves wolf ]
-breed [ sheepB a-sheepB ]
-turtles-own [ energy  add addOne]       ;  sheep have energy
+breed [ sheep a-sheep ]  ; sheep is its own plural, so we use "a-sheep" as the singular
 
-patches-own [ countdown ]    ; this is for the sheep-wolves-grass model version
+breed [ sheepTwo a-sheepTwo ]
+turtles-own [ energy ]       ;  sheep have energy
 
-to addSheep
-  ask one-of sheepW [
-
-      hatch 10 + weightGainSheep
-  ]
-
-end
-
-to addSheepTwo
-  ask one-of sheepB [
-
-    hatch 10 + weightGainSheep
-  ]
-
-end
-
-to checkPopulationSheepW
-  let currentSheep count SheepW - sheepWNumber
-
-  ifelse count SheepW < count SheepB
-  [set weightGainSheep 2]
-  [set weightGainSheep 0]
-
-  if currentSheep >= 0 or count grass > 50 [ addSheep]
-
-end
-
-to checkPopulationSheepB
-  let currentSheep count SheepB - sheepBNumber
-
-    ifelse count SheepW > count SheepB
-  [set weightGainSheep 20]
-  [set weightGainSheep 0]
-
-  if currentSheep >= 0 or count grass > 50 [ addSheepTwo]
-
-end
-
+patches-own [ countdown ]    ; grass have livespan
 
 to setup
   clear-all
   reset-ticks
 
-
-  ;ifelse netlogo-web? [ set max-sheep 10000 ] [ set max-sheep 30000 ]
-  set sheepWNumber 1
-  set sheepBNumber 1
-  set model-version  "sheep-grass"
-  set weightGainSheep 0
-  ; Check model-version switch
-  ; if we're not modeling grass, then the sheep don't need to eat to survive
-  ; otherwise each grass' state of growth and growing logic need to be set up
-
-
+  ifelse model-version = "sheep-grass" [     ; because this model change from wolf-sheep-grass, it need to confirm is sheep-grass model
     ask patches [
-      set pcolor one-of [ green brown ]
+      set pcolor one-of [ green brown ]      ; if there have grass is green color , if not is brown color
       ifelse pcolor = green
-        [ set countdown grass-regrowth-time ]
+        [ set countdown grass-regrowth-time ]  ; to set grass grow time
       [ set countdown random grass-regrowth-time ] ; initialize grass regrowth clocks randomly for brown patches
     ]
-
-  create-sheepW sheepWNumber  ; create the sheep, then initialize their variables
+  ]
+  [
+    ask patches [ set pcolor green ]    ; this is for set new grass when grass have grown
+    ask patches[
+      if pycor = 20 [set pcolor red]    ; Divide the farm into three areas of equal size and mark them with red lines
+      if pycor = 40 [set pcolor red]    ; Divide the farm into three areas of equal size and mark them with red lines
+  ]
+  ]
+  create-sheep initial-number-sheep  ; create the sheep, then initialize their variables
   [
     set shape  "sheep"
-    set color white
-    set size 0.5  ; easier to see
-    set add 1
+    set color white     ; A farmer's sheep is white color
+    set size 0.5
     set label-color blue - 2
-    set energy 10
-    ;set range-move range
+    set energy 10       ; sheep have initial energy
     set xcor random 60
-    set ycor 20 + random 40
+    set ycor 20 + random 40 ; because the farm have 60 size and A farmer's sheep can use the first and third area, so initial sheep on random 20~60 area; if only want A farmer's sheep use the first area, can change the ycor number
 
 
   ]
 
-  create-sheepB sheepBNumber  ; create the sheep, then initialize their variables
+  create-sheepTwo initial-number-sheepTwo  ; create the sheepTwo, then initialize their variables
   [
     set shape  "sheep"
-    set color black
-    set size 0.5  ; easier to see
+    set color Black     ; B farmer's sheep is black color
+    set size 0.5
     set label-color blue - 2
-    set energy 10
+    set energy 10       ; sheep have initial energy
     set xcor random 60
-    set ycor random 40
+    set ycor random 40  ; because the farm have 60 size and B farmer's sheep can use the second and third area, so initial sheep on random 0~40 area; if only want B farmer's sheep use the secone area, can change the ycor number
   ]
 
 end
 to setup-line
   ask patches[
-    if pycor = 20 [set pcolor red]
-    if pycor = 40 [set pcolor red]
+    if pycor = 20 [set pcolor red]  ; initial the fram by 3 equal area
+    if pycor = 40 [set pcolor red]  ; initial the fram by 3 equal area
   ]
 end
-
-
 to go
-  ; stop the model if there are no wolves and no sheep
-  ;if not any? turtles [ stop ]
-  ; stop the model if there are no wolves and the number of sheep gets very large
-  ;if not any? wolves and count sheep > max-sheep [ user-message "The sheep have inherited the earth" stop ]
+  ask turtles [
 
-  ;; check the population of sheep in two groups.
-
-
-  checkPopulationSheepW
-  checkPopulationSheepB
-
-
-
-  ask sheepW [
+    if color = white [
     move
-      ; in this version, sheep eat grass, grass grows, and it costs sheep energy to move
-      if model-version = "sheep-grass" [
-        set energy energy - 1  ; deduct energy for sheep only if running sheep-wolves-grass model version
-        eat-grass  ; sheep eat grass only if running the sheep-wolves-grass model version
-        death ; sheep die from starvation only if running the sheep-wolves-grass model version
-      ]
-
-  ]
-
-
-  ask sheepB [
-    moveTwo
-    ; in this version, sheep eat grass, grass grows, and it costs sheep energy to move
     if model-version = "sheep-grass" [
-      set energy energy - 1  ; deduct energy for sheep only if running sheep-wolves-grass model version
-      eat-grass  ; sheep eat grass only if running the sheep-wolves-grass model version
-      death ; sheep die from starvation only if running the sheep-wolves-grass model version
+      set energy energy - 1  ; Each time the sheep moves one unit, it consumes 1 energy
+      eat-grass  ; sheep to eat grass
+      death ; if sheep don;t have energy, it will die
     ]
 
-    ;reproduce-sheepTwo  ;
+    reproduce-sheep  ;
   ]
+  ]
+  ask sheepTwo [
+    moveTwo
+    if model-version = "sheep-grass" [
+      set energy energy - 1  ; Each time the sheep moves one unit, it consumes 1 energy
+      eat-grass  ; sheep to eat grass
+      death ; if sheep don;t have energy, it will die
+    ]
 
-
-   ask patches [ grow-grass ]
-
-  ;update the count of population
-
-  set sheepWNumber count sheepW
-  set sheepBNumber count sheepB
+    reproduce-sheepTwo  ;
+  ]
+   ask patches [ grow-grass ] ; when ask sheep to move, it also need to ask grass to grow
 
   tick
 
 end
 
 
-to move  ; turtle procedure
-  ;if y > 20[
+to move
   set xcor random 60
-  set ycor 20 + random 40
-  rt random 50
+  set ycor 20 + random 40   ; Restrict the range of farmer A ’s sheep
+  rt random 50     ; The movement of the sheep is random within the specified area
   lt random 50
   fd 1
-  set energy energy - 1;]
+    set energy energy - 1;] ; if sheep find grass, it will consume energy
 end
-to moveTwo  ; turtle procedure
-  ;if y > 20[
+to moveTwo
   set xcor random 60
-  set ycor 1 + random 40
-  rt random 50
+  set ycor 1 + random 40  ; Restrict the range of farmer B ’s sheep
+  rt random 50     ; The movement of the sheep is random within the specified area
   lt random 50
   fd 1
-    set energy energy - 1;]
+    set energy energy - 1;]  ; if sheep find grass, it will consume energy
 end
-to eat-grass  ; sheep procedure
-  ; sheep eat grass and turn the patch brown
+to eat-grass
   if pcolor = green [
     set pcolor brown
     set energy energy + sheep-gain-from-food  ; sheep gain energy by eating
   ]
 end
 
-to reproduce-sheep  ; sheep procedure
- ;if random-float 100 < sheep-reproduce [  ; throw "dice" to see if you will reproduce
-    ;set energy (energy / 2)                ; divide energy between parent and offspring
-    ;hatch 1 [ rt random-float 360 fd 1 ]   ; hatch an offspring and move it forward 1 step
-  ;]
-  if energy > birth-energy [
+to reproduce-sheep
+  if energy > birth-energy [   ; if energy better than birth-energy, Sheep will have lambs
     set energy energy - birth-energy  ;;
     hatch 1 [ set energy birth-energy ] ;;
     ]
 
 end
 
-to reproduce-sheepTwo  ; sheep procedure
-  ;if random-float 100 < sheep-reproduceTwo [  ; throw "dice" to see if you will reproduce
-   ; set energy (energy / 2)                ; divide energy between parent and offspring
-   ; hatch 1 [ rt random-float 360 fd 1 ]   ; hatch an offspring and move it forward 1 step
-  ;]
-  if energy > birth-energy [
+to reproduce-sheepTwo
+  if energy > birth-energy [   ; if energy better than birth-energy, Sheep will have lambs
     set energy energy - birth-energy  ;;
     hatch 1 [ set energy birth-energy ] ;;
     ]
@@ -207,12 +127,12 @@ end
 
 
 
-to death  ; turtle procedure (i.e. both wolf and sheep procedure)
-  ; when energy dips below zero, die
+to death
+  ; when energy is zero, die
   if energy < 0 [ die ]
 end
 
-to grow-grass  ; patch procedure
+to grow-grass
   ; countdown on brown patches: if you reach 0, grow some grass
   if pcolor = brown [
     ifelse countdown <= 0
@@ -222,7 +142,7 @@ to grow-grass  ; patch procedure
   ]
 end
 
-to-report grass
+to-report grass  ; to show the count of grass
   ifelse model-version = "sheep-grass" [
     report patches with [pcolor = green]
   ]
@@ -263,6 +183,36 @@ ticks
 30.0
 
 SLIDER
+5
+60
+179
+93
+initial-number-sheep
+initial-number-sheep
+0
+250
+20.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+196
+179
+229
+sheep-gain-from-food
+sheep-gain-from-food
+0.0
+50.0
+12.0
+1.0
+1
+NIL
+HORIZONTAL
+
+SLIDER
 0
 270
 212
@@ -271,7 +221,7 @@ grass-regrowth-time
 grass-regrowth-time
 0
 100
-5.0
+20.0
 1
 1
 NIL
@@ -327,17 +277,17 @@ true
 true
 "" ""
 PENS
-"sheep" 1.0 0 -612749 true "" "plot count sheepW"
-"grass / 4" 1.0 0 -10899396 true "" "if model-version = \"sheep-wolves-grass\" [ plot count grass / 4 ]"
-"sheepTwo" 1.0 0 -7500403 true "" "plot count sheepB"
+"sheep" 1.0 0 -612749 true "" "plot count sheep"
+"grass / 4" 1.0 0 -10899396 true "" "if model-version = \"sheep-grass\" [ plot count grass / 4 ]"
+"sheepTwo" 1.0 0 -7500403 true "" "plot count sheepTwo"
 
 MONITOR
 40
 310
 110
 355
-sheepW
-count sheepW
+sheep
+count sheep
 3
 1
 11
@@ -379,7 +329,7 @@ MONITOR
 282
 355
 sheepTwo
-count sheepB
+count sheepTwo
 17
 1
 11
@@ -393,7 +343,7 @@ birth-energy
 birth-energy
 0
 100
-0.0
+50.0
 1
 1
 NIL
@@ -416,33 +366,16 @@ NIL
 NIL
 1
 
-BUTTON
-110
-85
-197
-118
-NIL
-addSheep\n
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
 5
-200
-177
-233
-sheep-gain-from-food
-sheep-gain-from-food
+100
+212
+133
+initial-number-sheepTwo
+initial-number-sheepTwo
 0
-10
-3.0
+250
+20.0
 1
 1
 NIL
