@@ -43,27 +43,19 @@ to go
 
 
   ]
-  ;ask turtles [ flock ]
+
   ;; the following line is used to make the turtles
   ;; animate more smoothly.
   repeat 5 [ ask turtles [ fd 0.2 ] display ]
-  ;; for greater efficiency, at the expense of smooth
-  ;; animation, substitute the following line instead:
-  ;;   ask turtles [ fd 1 ]
+
 
 
 
   ;; behavior of preditors.
-
-
   ask predictors [
-    ;; make the preditor cheasing the weakest pray.
     fd 1
-
   ]
-
-
-
+  ;; make the preditor cheasing the weakest pray.
   every 1 [
     ask predictors [
       let t max-one-of prays [weight-target]
@@ -77,23 +69,21 @@ to go
 
   tick
 end
+
 ;; the function of update the weight
 to func-searchingTheWeakestPray
   ;; give a weight for each pray that shows how many prays is arrouding itselfs.
   set weight-target count prays in-radius 100
 end
+
 to find-birds
    set around-birds prays in-radius vision ;;find around birds in vision
-
 end
+
 to  find-nearest-bird
   set nearest-bird min-one-of around-birds [distance myself] ;;find nearest one
 end
-to wander
-  rt random 360
-  fd 0.5
-  ;; random direction
-end
+
 
 to run-away
   find-predictors ;;find if there is any predictors around
@@ -117,7 +107,7 @@ to find-nearest-predictor ;; turtle procedure
 end
 
 to escape
-    ;;if the bird fly in almost the same direction (deviation within 90 degeree) with the predictor
+  ;;if the bird fly in almost the same direction (deviation within 90 degeree) with the predictor
   ;;make the bird turn around
   ;;other direction, eascape to change to the same direction of the predictor
   ;;fly with 1.5 times of the normal speed to eascape
@@ -128,10 +118,14 @@ to escape
   ;;turn-away ([heading] of nearest-predictor) 90
   ;;set heading ([heading] of nearest-predictor) - escape-turn
   ifelse (abs (heading - [heading] of nearest-predictor) ) < 90
-  [set heading (heading) + 180 + escape-turn
-  fd 3]
-  [set heading ([heading] of nearest-predictor) + escape-turn
-    fd 3]
+  [
+    set heading (heading) + 180 + escape-turn
+    fd 3
+  ]
+  [
+    set heading ([heading] of nearest-predictor) + escape-turn
+    fd 3
+  ]
   ;;set heading random [heading] of nearest-predictor 359
   ;;right random 0 [heading] of nearest-predictor
 end
