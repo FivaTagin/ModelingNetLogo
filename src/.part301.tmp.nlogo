@@ -28,10 +28,10 @@ to checkPopulationSheepW
   let currentSheep count SheepW - sheepWNumber
 
   ifelse count SheepW < count SheepB
-  [set weightGainSheep 10]
+  [set weightGainSheep 2]
   [set weightGainSheep 0]
 
-  if currentSheep >= 0 or count grass > 100 [ addSheep]
+  if currentSheep >= 0 or count grass > 50 [ addSheep]
 
 end
 
@@ -39,10 +39,10 @@ to checkPopulationSheepB
   let currentSheep count SheepB - sheepBNumber
 
     ifelse count SheepW > count SheepB
-  [set weightGainSheep 10]
+  [set weightGainSheep 20]
   [set weightGainSheep 0]
 
-  if currentSheep >= 0 or count grass > 100 [ addSheepTwo]
+  if currentSheep >= 0 or count grass > 50 [ addSheepTwo]
 
 end
 
